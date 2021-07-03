@@ -1,0 +1,25 @@
+pwd -P 显示当前工作目录的真实路径，非软链接路径
+redirect
+
+scp -r fund_test:/home/alachess/retail/server/logs/tmp
+
+
+
+systemctl stop firewalld
+systemctl disable firewalld.service
+
+
+add root privilage to normal user
+vim /etc/sudoers
+add 
+hadoop100       ALL=(ALL)       NOPASSWD: ALL 
+after
+%wheel  ALL=(ALL)       ALL
+
+
+
+rpm -qa | grep -i java | xargs -n1 rpm -e --nodeps
+查询所有安装rpm的软件包
+忽略大小写
+每次只传递一个参数
+强制卸载软 

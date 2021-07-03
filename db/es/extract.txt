@@ -1,0 +1,277 @@
+By default, Elasticsearch indexes all data in every field and each indexed field has a dedicated, optimized data structure. 
+
+Elasticsearch also has the ability to be schema-less, which means that documents can be indexed without explicitly specifying how to handle each of the different fields that might occur in a document.
+
+
+Elasticsearch provides a simple, coherent REST API 
+	managing your cluster and indexing and searching your data.	
+	you can easily submit requests directly from the command line or through the Developer Console in Kibana
+	
+	
+Search your data
+	The Elasticsearch REST APIs support structured queries, full text queries, and complex queries that combine the two
+
+
+node
+	When you start an instance of Elasticsearch, you are starting a node. 
+	An Elasticsearch cluster is a group of nodes that have the same cluster.name attribute.
+
+shards
+        Elasticsearch provides the ability to subdivide your index into multiple pieces called shards. When you create an index, you can simply define the number of shards that you want. Each shard is in itself a fully-functional and independent "index" that can be hosted on any node in the cluster.
+
+replicas
+         it is very useful and highly recommended to have a failover mechanism in case a shard/node somehow goes offline or disappears for whatever reason. To this end, Elasticsearch allows you to make one or more copies of your index’s shards into what are called replica shards, or replicas for short.
+
+
+Discovery
+	Discovery is the process where nodes find each other when the master is unknown, such as when a node has just started up or when the previous master has failed.
+	Discovery is the process by which the cluster formation module finds other nodes with which to form a cluster.
+
+	This process starts with a list of seed addresses from one or more seed hosts providers
+seed hosts Providers
+	two seed hosts providers: 
+		a settings-based: 
+			in elasticsearch.yml
+				discovery.seed_hosts:
+				   - 192.168.1.10:9300
+				   - 192.168.1.11
+				   - seeds.mydomain.com
+			
+		a file-based seed hosts provider.	
+			in elasticsearch.yml
+				discovery.seed_providers: file
+		file at $ES_PATH_CONF/unicast_hosts.txt
+
+unicast_host.txt example
+	10.10.10.5
+	10.10.10.6:9305
+	10.10.10.5:10005
+	# an IPv6 address
+	[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:9301		
+
+	If the port number is not specified, Elasticsearch will implicitly use the first port in the port range given by transport.profiles.default.port, or by transport.port if transport.profiles.default.port is not set.
+
+
+boot es
+	To add a node to a cluster running on your local machine:
+	Set up a new Elasticsearch instance.
+Specify the name of the cluster with the cluster.name setting in elasticsearch.yml. For example, to add a node to the logging-prod cluster, add the line cluster.name: "logging-prod" to elasticsearch.yml.
+Start Elasticsearch. The node automatically discovers and joins the specified cluster.
+	
+
+	To add a node to a cluster running on multiple machines
+	you must also set discovery.seed_hosts so that the new node can discover the rest of its cluster.
+
+
+
+ducument
+	Each document is a collection of fields, which each have their own data type. 	
+	
+	document metadata fileds
+		_index 	The index to which the document belongs
+		_type 	The document's mapping type
+		_id 	The document's ID
+		_source	The original JSON representing the body of the document.
+		_size 	The size of the _source field in bytes, provided by the mapper-size plugin.
+		_field_names All fields in the document which contain non-null values.
+		_ignored All fields in the document that have been ignored at index time because of ignore_malformed.	
+		_routing A custom routing value which routes a document to a particular shard.	
+	
+mapping 
+	Mapping is the process of defining how a document, and the fields it contains, are stored and indexed.
+	When mapping your data, you create a mapping definition, which contains a list of fields that are pertinent to the document. A mapping definition also includes metadata fields, like the _source field, which customize how a document’s associated metadata is handled.
+
+
+mapping - runtime fileds
+	
+
+field types
+	Flattened filed:
+		Given an object, the flattened mapping will parse out its leaf values and index them into one field as keywords. The object’s contents can then be searched through simple queries and aggregations.	
+
+	Nested: The nested type is a specialised version of the object data type that allows arrays of objects to be indexed in a way that they can be queried independently of each other. 
+
+template
+	index template
+		 While you can use component templates to construct index templates, they aren’t directly applied to a set of indices. Index templates can contain a collection of component templates, as well as directly specify settings, mappings, and aliases.	
+
+	component template
+		Component templates are reusable building blocks that configure mappings, settings, and aliases.
+
+template precedence
+	Composable templates > legacy templates
+	explicit settings on created > index template and its component templates
+	index template with the highest priority is used	
+
+
+ingest pipelines
+	Ingest pipelines let you perform common transformations on your data before indexing.
+
+
+Search
+	define runtime fields that exist only in a query
+
+Query
+
+	Boolean Query
+
+	Compound queries
+
+	Term-level queries
+
+	Full text queries
+
+	Geo
+
+	spatial queries
+
+Query rescorer
+
+	The query rescorer executes a second query only on the Top-K results returned by the query and post_filter phases.	
+
+
+Aggregation
+	An aggregation summarizes your data as metrics, statistics, or other analytics.
+
+	Bucket Aggregation
+		Each bucket is associated with a criterion (depending on the aggregation type) which determines whether or not a document in the current context "falls" into it.		
+		 can hold sub-aggregations.
+
+	Metrics Aggregation
+		The aggregations in this family compute metrics based on values extracted in one way or another from the documents that are being aggregated.	
+
+	Pipline Aggregation
+		Pipeline aggregations work on the outputs produced from other aggregations rather than from document sets, adding information to the output tree.
+
+		Parent
+			A family of pipeline aggregations that is provided with the output of its parent aggregation and is able to compute new buckets or new aggregations to add to existing buckets.
+	
+		Sibling
+			Pipeline aggregations that are provided with the output of a sibling aggregation and are able to compute a new aggregation which will be at the same level as the sibling aggregation.
+			Pipeline aggregations cannot have sub-aggregations
+
+
+
+
+Query DSL
+	Relevance scores
+		By default, Elasticsearch sorts matching search results by relevance score, which measures how well each document matches a query.
+	
+	Query context
+		query clause also calculates a relevance score in the _score metadata field.
+		Query context is in effect whenever a query clause is passed to a query parameter, such as the query parameter in the search API.
+
+
+GET /_search
+{
+  "query": { 			// query context
+    "bool": { 
+      "must": [
+        { "match": { "title":   "Search"        }},
+        { "match": { "content": "Elasticsearch" }}
+      ],
+      "filter": [ 		// filter context
+        { "term":  { "status": "published" }},
+        { "range": { "publish_date": { "gte": "2015-01-01" }}}
+      ]
+    }
+  }
+}
+
+	
+	Filtey context
+		Filter context is mostly used for filtering structured data
+
+	Leaf query clauses
+		match text, number, date or boolean value.
+		term 
+		range
+
+	Compound query clauses
+Boolean
+
+POST _search
+{
+  "query": {
+    "bool" : {
+      "must" : {
+        "term" : { "user.id" : "kimchy" }
+      },
+      "filter": {
+        "term" : { "tags" : "production" }
+      },
+      "must_not" : {
+        "range" : {
+          "age" : { "gte" : 10, "lte" : 20 }
+        }
+      },
+      "should" : [
+        { "term" : { "tags" : "env1" } },
+        { "term" : { "tags" : "deployed" } }
+      ],
+      "minimum_should_match" : 1,
+      "boost" : 1.0
+    }
+  }
+}
+
+Boosting
+	Returns documents matching a positive query while reducing the relevance score of documents that also match a negative query.
+	You can use the boosting query to demote certain documents without excluding them from the search results.
+
+GET /_search
+{
+  "query": {
+    "boosting": {
+      "positive": {
+        "term": {
+          "text": "apple"
+        }
+      },
+      "negative": {
+        "term": {
+          "text": "pie tart fruit crumble tree"
+        }
+      },
+      "negative_boost": 0.5
+    }
+  }
+}
+
+Constant score query
+
+Wraps a filter query and returns every matching document with a relevance score equal to the boost parameter value.
+
+Geo queries
+	Don't care
+
+
+Joining queries
+	1.Nested	2. has child	3. has parent	4 Parent ID
+
+
+	parent-child relationships	[join field type]
+		You can create parent-child relationships between documents in the same index using a join field mapping.
+
+
+Term
+	功能比match弱一点的字段查询	
+	Returns documents that contain an exact term in a provided field.
+
+
+Span queries
+	low-level positional queries which provide expert control over the order and proximity of the specified terms.
+	Span queries cannot be mixed with non-span queries (with the exception of the span_multi query).
+	
+	outer span query
+		is allowed to set boost
+
+	inner span query
+		is not allowed to set boost
+
+
+span term query
+		
+
+Span near query (example in office)
+		

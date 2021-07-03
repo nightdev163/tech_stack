@@ -1,0 +1,108 @@
+Warning: Tried to install empty array to /usr/local/etc/elasticsearch/jvm.options.d
+==> codesign -f -s - /usr/local/Cellar/elasticsearch-full/7.12.0/libexec/modules/x-pack-ml/platform/darwin-x86_64/controller.app --deep
+==> find /usr/local/Cellar/elasticsearch-full/7.12.0/libexec/jdk.app/Contents/Home/bin -type f -exec codesign -f -s - {} ;
+==> Caveats
+Data:    /usr/local/var/lib/elasticsearch/elasticsearch_zlh/
+Logs:    /usr/local/var/log/elasticsearch/elasticsearch_zlh.log
+Plugins: /usr/local/var/elasticsearch/plugins/
+Config:  /usr/local/etc/elasticsearch/
+
+To have launchd start elastic/tap/elasticsearch-full now and restart at login:
+  brew services start elastic/tap/elasticsearch-full
+Or, if you don't want/need a background service you can just run:
+  elasticsearch
+==> Summary
+🍺  /usr/local/Cellar/elasticsearch-full/7.12.0: 957 files, 493.3MB, built in 1 minute 22 seconds
+
+-----------------------------------------------------------
+
+
+elasticsearch.yml for configuring Elasticsearch
+jvm.options for configuring Elasticsearch JVM settings
+log4j2.properties for configuring Elasticsearch logging
+
+
+home 
+Elasticsearch home directory or $ES_HOME 
+/usr/local/var/homebrew/linked/elasticsearch-full
+
+bin
+Binary scripts including elasticsearch to start a node and elasticsearch-plugin to install plugins
+/usr/local/var/homebrew/linked/elasticsearch-full/bin
+
+
+conf
+Configuration files including elasticsearch.yml
+/usr/local/etc/elasticsearch
+ES_PATH_CONF
+
+data
+The location of the data files of each index / shard allocated on the node. Can hold multiple locations.
+/usr/local/var/lib/elasticsearch
+setting node: path.data
+
+logs
+Log files location.
+/usr/local/var/log/elasticsearch
+setting node: path.logs
+
+plugins
+Plugin files location. Each plugin will be contained in a subdirectory.
+/usr/local/var/homebrew/linked/elasticsearch/plugins
+
+
+----------------------------------------------------------
+mac config
+
+config file path
+/usr/local/etc/elasticsearch
+	elasticsearch.yml jvm.options log4j2.properties
+
+elasticsearch.yml
+# path setting
+	path.data: /usr/local/var/lib/elasticsearch/
+	path.logs: /usr/local/var/log/elasticsearch/
+
+# cluster name setting
+	cluster.name: elasticsearch_zlh
+
+# node name setting
+	node.name: node-1
+
+# network host setting	used for product
+	hetwork.host: 192.168.0.1
+
+# discovery and cluster formation settings
+	discovery.seed_hosts: ["host1", "host2"]
+	discovery.seed_hosts:
+	   - 192.168.1.10:9300
+	   - 192.168.1.11 
+	   - seeds.mydomain.com 
+	   - [0:0:0:0:0:ffff:c0a8:10c]:9301
+# cluster.initial_master_nodes: ["node-1", "node-2"]
+	cluster.initial_master_nodes: 
+	   - master-node-a
+	   - master-node-b
+	   - master-node-c
+
+
+Temporary directory settings
+
+
+
+
+jvm setings
+	By default, Elasticsearch automatically sizes JVM heap based on a node’s roles and total memory. 
+	Automatic heap sizing requires the bundled JDK or, if using a custom JRE location, a Java 14 or later JRE.
+
+
+
+JVM fatal error log setting
+
+RPM andDebian packages 
+	this directory is /var/log/elasticsearch.
+On Linux and MacOS and Windows distributions, 
+	the logs directory is located under the root of the Elasticsearch installation.
+	If this path is not suitable for receiving logs, modify the -XX:ErrorFile=... entry in jvm.options.
+
+

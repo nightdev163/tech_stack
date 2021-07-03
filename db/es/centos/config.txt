@@ -1,0 +1,22 @@
+sysconfig 
+	/etc/sysconfig/elasticsearch
+
+shell
+	/etc/rc.d/init.d/elasticsearch
+
+config file
+	/etc/elasticsearch	
+
+data file
+	/var/lib/elasticsearch
+
+log file
+	/var/log/elasticsearch	
+
+bin
+	/usr/share/elasticsearch
+	
+
+How to start and stop Elasticsearch depends on whether your system uses SysV init or systemd (used by newer distributions). You can tell which is being used by running this command:
+
+ps - p 1

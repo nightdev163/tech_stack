@@ -1,0 +1,7 @@
+ To configure Elasticsearch to start automatically when the system boots up, run the following commands:
+	sudo /bin/systemctl daemon-reload
+	sudo /bin/systemctl enable elasticsearch.service
+
+Elasticsearch can be started and stopped as follows:
+	sudo systemctl start elasticsearch.service
+	sudo systemctl stop elasticsearch.service
