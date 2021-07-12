@@ -3,23 +3,16 @@ redirect
 
 scp -r fund_test:/home/alachess/retail/server/logs/tmp
 
+sshd
 
+1.编辑/etc/sshd_config文件，注释掉
+#ForceCommand /usr/local/bin/ssh_session
 
-systemctl stop firewalld
-systemctl disable firewalld.service
+2.启动sshd服务：
+sudo launchctl load -w /System/Library/LaunchDaemons/ssh.plist
 
+3.停止sshd服务：
+sudo launchctl unload -w /System/Library/LaunchDaemons/ssh.plist
 
-add root privilage to normal user
-vim /etc/sudoers
-add 
-hadoop100       ALL=(ALL)       NOPASSWD: ALL 
-after
-%wheel  ALL=(ALL)       ALL
-
-
-
-rpm -qa | grep -i java | xargs -n1 rpm -e --nodeps
-查询所有安装rpm的软件包
-忽略大小写
-每次只传递一个参数
-强制卸载软 
+4查看是否启动：
+sudo launchctl list | grep ssh

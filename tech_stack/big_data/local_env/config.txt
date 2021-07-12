@@ -1,0 +1,19 @@
+etc/hadoop/core-site.xml
+<property>
+        <name>dfs.replication</name>
+        <value>1</value>
+</property>
+
+etc/hadoop/hdfs-site.xml
+<configuration>
+    <property>
+        <name>dfs.replication</name>
+        <value>1</value>
+    </property>
+</configuration>
+
+boot
+	format the filesystem
+	$ bin/hdfs namenode -format
+	start Namenode daemon and DataNode daemon
+	$ sbin/start-dfs.sh
