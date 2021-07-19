@@ -1,0 +1,35 @@
+// database
+
+CREATE DATABASE IF NOT EXISTS hive_lab
+  COMMENT 'this is sandbox'
+  LOCATION '/user/hive/hive_lab_ext';
+
+drop database hive_lab;
+
+show databases;
+
+use hive_lab;
+
+
+// table
+CREATE TABLE pokes (foo int, bar string)
+
+CLUSTERED BY (foo) INTO 5 BUCKETS
+
+STORED AS ORC
+
+TBLPROPERTIES ('transactional'='true');
+
+DELETE FROM pokes where foo = 2;
+
+drop table pokes;
+
+INSERT INTO TABLE pokes VALUES (1, 'tom'), (2, 'lucy'), (3, 'joe');
+
+select * from pokes;
+
+select * from pokes cluster by foo;
+
+ALTER TABLE pokes SET FILEFORMAT ORC;
+
+ALTER TABLE pokes SET TBLPROPERTIES ('transactional'='true');

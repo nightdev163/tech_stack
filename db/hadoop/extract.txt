@@ -9,3 +9,13 @@ find ./ -inme *defult.xml
 .//share/doc/hadoop/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml
 .//share/doc/hadoop/hadoop-project-dist/hadoop-hdfs-rbf/hdfs-rbf-default.xml
 .//share/doc/hadoop/hadoop-mapreduce-client/hadoop-mapreduce-client-core/mapred-default.xml
+
+
+manged vs externel
+
+https://cwiki.apache.org/confluence/display/Hive/Managed+vs.+External+Tables
+
+
+
+cluster
+https://www.educba.com/hive-cluster-by/
