@@ -33,3 +33,16 @@ select * from pokes cluster by foo;
 ALTER TABLE pokes SET FILEFORMAT ORC;
 
 ALTER TABLE pokes SET TBLPROPERTIES ('transactional'='true');
+
+
+ORDER BY 
+guarantees total order in the output
+
+SORT BY
+Hive supports SORT BY which sorts the data per reducer. The difference between "order by" and "sort by" is that the former guarantees total order in the output while the latter only guarantees ordering of the rows within a reducer. If there are more than one reducer, "sort by" may give partially ordered final results.
+
+
+CLUSTER BY
+We can also say that CLUSTER BY is an alternative to DISTRIBUTE BY and SORT BY combined.CLUSTER BY can lead to complete ordering of data for tables. Instead of specifying Cluster By, the user may specify Distribute By and Sort By, so that the columns of the partitions and the columns of sorting can differ.
+
+
