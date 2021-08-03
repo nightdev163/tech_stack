@@ -42,9 +42,9 @@ object Hello extends App {
   spark.sql("SELECT * FROM global_temp.people").show()
   spark.newSession().sql("SELECT * FROM global_temp.people").show()*/
 
-  case class Person(name: String, age: Long)
+  /*case class Person(name: String, age: Long)
 
-  /*
+  
   val caseClassDS = Seq(Person("Andy", 32)).toDS()
   caseClassDS.show()
 
@@ -78,6 +78,7 @@ object Hello extends App {
   teenagersDF.map(teenager => teenager.getValuesMap[Any](List("name", "age"))).collect() */
 
 
+  /*
   // Create an RDD
   val peopleRDD = spark.sparkContext.textFile("src/main/resources/people.txt")
 
@@ -106,4 +107,7 @@ object Hello extends App {
   // The results of SQL queries are DataFrames and support all the normal RDD operations
   // The columns of a row in the result can be accessed by field index or by field name
   results.map(attributes => "Name: " + attributes(0)).show()
+  */
+  
+  
 }
