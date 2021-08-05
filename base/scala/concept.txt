@@ -1,0 +1,10 @@
+https://docs.scala-lang.org/tour/tour-of-scala.html
+https://docs.scala-lang.org/overviews/scala-book/introduction.html
+
+scala is a pure object-oriented language in the sense that every value is an object. 
+Scala is also a functional language in the sense that every function is a value. 
+
+
+scala is statically typed
+Scala’s expressive type system enforces, at compile-time, that abstractions are used in a safe and coherent manner. 
+
