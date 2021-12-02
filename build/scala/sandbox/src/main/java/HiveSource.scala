@@ -13,16 +13,18 @@ object HiveSource extends App {
     .appName("Spark Hive Example")
     .config("spark.master", "local")
     .config("hive.metastore.uris", "thrift://localhost:9083")
+    // .config("hive.metastore.uris", "thrift://localhost:10000")
     .enableHiveSupport()
     .getOrCreate()
 
   import spark.implicits._
   import spark.sql
 
-  sql("CREATE TABLE IF NOT EXISTS src (key INT, value STRING) USING hive")
-  sql("LOAD DATA LOCAL INPATH 'src/main/resources/kv1.txt' INTO TABLE src")
+  // sql("CREATE TABLE IF NOT EXISTS src (key INT, value STRING) USING hive")
+  sql("CREATE TABLE IF NOT EXISTS hive_lab.src (key INT, value STRING) USING hive")
+  //sql("LOAD DATA LOCAL INPATH 'src/main/resources/kv1.txt' INTO TABLE hive_lab.src")
 
-  sql("SELECT * FROM src").show()
+  //sql("SELECT * FROM hive_lab.src").show()
 
   // Queries are expressed in HiveQL
   //sql("SELECT * FROM src").show()

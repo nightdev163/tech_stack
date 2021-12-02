@@ -8,3 +8,4 @@ Scala is also a functional language in the sense that every function is a value.
 scala is statically typed
 Scala’s expressive type system enforces, at compile-time, that abstractions are used in a safe and coherent manner. 
 
+ (val)s are immutable, you can’t write the following.

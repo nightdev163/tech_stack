@@ -1,0 +1,20 @@
+nodes:
+  - name: print
+    type: command
+    config:
+      command: echo "local start"
+
+  - name: hdfs_01
+    type: command
+    dependsOn:
+      - print
+    config:
+      command: /Users/zlh/github/tech_stack/big_data/azkaban/hdfs/hdfs_01.sh
+
+
+- name: ods_01
+    type: command
+    dependsOn:
+      - hdfs_01
+    config:
+      command: /Users/zlh/github/tech_stack/big_data/azkaban/ods/ods_all.sh

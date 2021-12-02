@@ -28,6 +28,25 @@
             <artifactId>spark-hive_${scala.version}</artifactId>
             <version>${spark.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.sqoop</groupId>
+            <artifactId>sqoop</artifactId>
+            <version>1.4.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.39</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hadoop.gplcompression</groupId>
+            <artifactId>hadoop-lzo</artifactId>
+            <version>cdh4-0.4.15-gplextras</version>
+        </dependency>
+        
     </dependencies>
 
 </project>
