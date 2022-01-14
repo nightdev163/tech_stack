@@ -20,3 +20,6 @@ sudo launchctl list | grep ssh
 
 指定文件grep
 find . -name “*.java” | xargs grep -e findString -2 >> findString.find
+
+
+
