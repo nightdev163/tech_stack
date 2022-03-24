@@ -1,0 +1,28 @@
+KAFKA CONNECT
+	Kafka Connect is a tool for scalably and reliably streaming data between Apache Kafka and other systems.
+
+
+boot standalone connect
+	bin/connect-standalone.sh config/connect-standalone.properties connector1.properties [connector2.properties ...]
+
+
+	worker configuration config/connect-standalone.properties
+		bootstrap.servers - List of Kafka servers used to bootstrap connections to Kafka
+		key.converter - Converter class used to convert between [Kafka Connect format] and the [serialized form that is written to Kafka].
+		value.converter - Converter class used to convert between Kafka [Connect format] and the [serialized form that is written to Kafka]. 	
+		offset.storage.file.filename - File to store offset data in
+
+	connector configuration
+		Connector configurations are simple key-value mappings.		
+		standalone mode:
+			are defined in a properties file and passed to the Connect process on the command line
+		distributed mode:
+			they will be included in the JSON payload for the request that creates (or modifies) the connector.
+
+
+boot distributed connect
+	bin/connect-distributed.sh config/connect-distributed.properties
+
+
+Transformations
+	Connectors can be configured with transformations to make lightweight message-at-a-time modifications. They can be convenient for data massaging and event routing.

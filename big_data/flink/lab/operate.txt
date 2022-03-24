@@ -1,0 +1,6 @@
+execute
+	bin/flink run -Dexecution.runtime-mode=BATCH examples/streaming/WordCount.jar
+
+
+config
+	set -D option when using command-line

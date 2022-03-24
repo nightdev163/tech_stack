@@ -1,0 +1,14 @@
+default args (when boot standalone deamon)
+
+start
+standalonesession
+--configDir /opt/flink-1.14.2/conf --executionMode cluster -D jobmanager.memory.off-heap.size=134217728b -D jobmanager.memory.jvm-overhead.min=201326592b -D jobmanager.memory.jvm-metaspace.size=268435456b -D jobmanager.memory.heap.size=1073741824b -D jobmanager.memory.jvm-overhead.max=201326592b
+
+
+flink-daemon.sh
+start
+taskexecutor
+--configDir
+
+
+org.apache.flink.runtime.taskexecutor.TaskManagerRunner

@@ -1,0 +1,8 @@
+mac:
+get config path: 
+	mysql --verbose --help | grep my.cnf
+binlog config:
+	[mysqld]
+	bind-address = 127.0.0.1
+	log-bin = /usr/local/var/mysql/binlog
+	server-id = 1 

@@ -1,0 +1,143 @@
+Batch (bounded)
+	 This executes jobs in a way that is more reminiscent of batch processing frameworks such as MapReduce. This should be used for bounded jobs for which you have a known fixed input and which do not run continuously.
+Streaming (unbounded)
+	 This should be used for unbounded jobs that require continuous incremental processing and are expected to stay online indefinitely.
+
+
+A group of one or multiple (chained) operators that Flink considers as a unit of scheduling is called a task
+	operator(s) === chaining ===> unit of scheduling(task)
+
+
+
+
+streaming execution mode
+
+STREAMING Execution Mode #
+In STREAMING execution mode, all tasks need to be online/running all the time. This allows Flink to immediately process new records through the whole pipeline, which we need for continuous and low-latency stream processing. This also means that the TaskManagers that are allotted to a job need to have enough resources to run all the tasks at the same time.
+
+Network shuffles are pipelined, meaning that records are immediately sent to downstream tasks, with some buffering on the network layer. Again, this is required because when processing a continuous stream of data there are no natural points (in time) where data could be materialized between tasks (or pipelines of tasks). This contrasts with BATCH execution mode where intermediate results can be materialized, as explained below.
+
+batch execution mode
+In BATCH execution mode, the tasks of a job can be separated into stages that can be executed one after another. We can do this because the input is bounded and Flink can therefore fully process one stage of the pipeline before moving on to the next. In the above example the job would have three stages that correspond to the three tasks that are separated by the shuffle barriers.
+
+Instead of sending records immediately to downstream tasks, as explained above for STREAMING mode, processing in stages requires Flink to materialize intermediate results of tasks to some non-ephemeral storage which allows downstream tasks to read them after upstream tasks have already gone off line. This will increase the latency of processing but comes with other interesting properties. For one, this allows Flink to backtrack to the latest available results when a failure happens instead of restarting the whole job. Another side effect is that BATCH jobs can execute on fewer resources (in terms of available slots at TaskManagers) because the system can execute tasks sequentially one after the other.
+
+TaskManagers will keep intermediate results at least as long as downstream tasks have not consumed them. (Technically, they will be kept until the consuming pipelined regions have produced their output.) After that, they will be kept for as long as space allows in order to allow the aforementioned backtracking to earlier results in case of a failure.
+
+
+
+
+StateBackend
+	In STREAMING mode, Flink uses a StateBackend to control how state is stored and how checkpointing works.
+	In BATCH mode, the configured state backend is ignored.
+
+
+[event, event time, timely stream processing, event time timestamps, processing time]
+Timely Stream Processing 
+	For most streaming applications it is very valuable to be able re-process historic data with the same code that is used to process live data – and to produce deterministic, consistent results, regardless.
+	It can also be crucial to pay attention to the order in which events occurred, rather than the order in which they are delivered for processing, and to be able to reason about when a set of events is (or should be) complete. For example, consider the set of events involved in an e-commerce transaction, or financial trade.
+	These requirements for timely stream processing can be met by using event time timestamps that are recorded in the data stream, rather than using the clocks of the machines processing the data.
+	
+	Note that sometimes when event time programs are processing live data in real-time, they will use some [processing time] operations in order to guarantee that they are progressing in a timely fashion.
+
+
+[
+stateful, 有状态的 
+instance, 计算实例 
+key-value store 键值存储
+]
+Stateful Stream Processing
+
+Flink’s operations can be [stateful]. This means that how one event is handled can depend on the accumulated effect of all the events that came before it. State may be used for something simple, such as counting events per minute to display on a dashboard, or for something more complex, such as computing features for a fraud detection model.
+
+While many operations in a dataflow simply look at one individual event at a time (for example an event parser), some operations remember information across multiple events (for example window operators). These operations are called [stateful].
+
+A Flink application is run in parallel on a distributed cluster. The various parallel instances of a given operator will execute independently, in separate threads, and in general will be running on different machines.
+
+The set of parallel instances of a stateful operator is effectively a sharded key-value store. Each parallel instance is responsible for handling events for a specific group of keys, and the state for those keys is kept locally.
+
+The diagram below shows a job running with a parallelism of two across the first three operators in the job graph, terminating in a sink that has a parallelism of one. The third operator is stateful, and you can see that a fully-connected network shuffle is occurring between the second and third operators. This is being done to partition the stream by some key, so that all of the events that need to be processed together, will be.
+
+
+[
+execution environment, 执行环境
+job graph, 工作图
+parallel slice, 平行切片
+task slot 任务槽
+]
+Stream execution environment 
+Every Flink application needs an execution environment, env in this example. Streaming applications need to use a StreamExecutionEnvironment.
+
+The DataStream API calls made in your application build a job graph that is attached to the StreamExecutionEnvironment. When env.execute() is called this graph is packaged up and sent to the JobManager, which parallelizes the job and distributes slices of it to the Task Managers for execution. Each parallel slice of your job will be executed in a task slot.
+
+Note that if you don’t call execute(), your application won’t be run.
+
+
+Data Pipelines & ETL
+
+One very common use case for Apache Flink is to implement ETL (extract, transform, load) pipelines that take data from one or more sources, perform some transformations and/or enrichments, and then store the results somewhere. In this section we are going to look at how to use Flink’s DataStream API to implement this kind of application.
+
+
+[ 
+state
+state backends
+Keyed State
+]
+Flink provides different state backends that specify how and where state is stored.
+reference
+https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/ops/state/state_backends/
+
+Keyed state is maintained in what can be thought of as an embedded key/value store. The state is partitioned and distributed strictly together with the streams that are read by the stateful operators.
+
+[watermarks]
+The mechanism in Flink to measure progress in event time is watermarks.
+
+[operation, dataflow graph, shuffle]
+Flink jobs consist of different operations that are connected together in a dataflow graph. The system decides how to schedule the execution of these operations on different processes/machines (TaskManagers) and how data is shuffled (sent) between them.
+
+[operation/operator, task, subtask, scheduling]
+Multiple operations/operators can be chained together using a feature called chaining. A group of one or multiple (chained) operators that Flink considers as a unit of scheduling is called a task. Often the term subtask is used to refer to the individual instances of tasks that are running in parallel on multiple TaskManagers but we will only use the term task here.
+
+
+[Source Split,split,partition, Split Enumerator, Source Reader]
+
+partition is equal to split
+
+A source split in Kafka source represents a partition of Kafka topic. A Kafka source split consists of:
+
+	TopicPartition the split representing
+	Starting offset of the partition
+	Stopping offset of the partition, only available when the source is running in bounded mode
+
+subtask
+	Multiple operations/operators can be chained together using a feature called chaining. A group of one or multiple (chained) operators that Flink considers as a unit of scheduling is called a task. Often the term subtask is used to refer to the individual instances of tasks that are running in parallel on multiple TaskManagers but we will only use the term task here.
+
+
+Split Eumerator
+	The split enumerator of Kafka is responsible for discovering new splits (partitions) under the provided topic partition subscription pattern, and assigning splits to readers, uniformly distributed across subtasks, in round-robin style. 
+
+
+
+
+
+
+[
+keyed stream?
+event’s key?
+]
+
+
+
+--------------- api -------------------
+
+
+TimestampAssigner
+	In order to work with event time, Flink needs to know the events timestamps, meaning each element in the stream needs to have its event timestamp assigned. This is usually done by accessing/extracting the timestamp from some field in the element by using a TimestampAssigner.
+
+WatermarkGenerator
+	Timestamp assignment goes hand-in-hand with generating watermarks, which tell the system about progress in event time.You can configure this by specifying a WatermarkGenerator.
+WatermarkStrategy
+	The Flink API expects a WatermarkStrategy that contains both a TimestampAssigner and WatermarkGenerator.
+
+
+

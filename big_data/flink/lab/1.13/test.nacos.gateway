@@ -1,0 +1,385 @@
+ribbon:
+  #最大重试次数，当注册中心可以找到服务，但是服务连不上时将会重试
+  MaxAutoRetries: 0
+  #切换实例的重试次数，
+  MaxAutoRetriesNextServer: 0
+  #对所有操作请求都进行重试，如果是get则可以，如果是post，put等操作没有实现幂等的情况下是很危险的,所以设置为false
+  OkToRetryOnAllOperations: false
+  #请求连接的超时时间，不宜配置过长
+  ConnectTimeout: 20000
+  #请求处理的超时时间，配置了断路器超过此时间会触发熔断降级，当ribbon超时后且hystrix没有超时，并且配置重试则会触发重试
+  ReadTimeout: 100000
+  ## ribbon饥饿加载模式
+  eager-load:
+    enabled: true
+    clients: 
+      - xc-ddd-sample
+      - xc-ibcs
+      - xc-uims
+      - xc-hrms
+      - xc-mrts
+      - xc-mtsg
+      - xc-eleme
+      - xc-gms
+      - xc-jdhome
+      - xc-docs
+      - xc-oms
+      - xc-wms
+      - xc-pms
+      - xc-mes
+      - xc-x6dj
+      - xc-predict
+      - xc-warehouse
+      - xc-qms
+      - xc-wms-inbound
+      - xc-wms-task
+      - xc-wms-warehouse
+      - xc-wms-outbound
+      - xc-ykt
+      - xc-wms-gss
+      - xc-gss
+
+feign:
+  hystrix:
+    #开启熔断器
+    enabled: false
+
+# gateway
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          # 让gateway通过服务发现组件找到其他的微服务
+          enabled: true
+      routes:
+        # sample
+        - id: xc-ddd-sample
+          uri: lb://xc-ddd-sample
+          predicates:
+            - Path=/api/sample/**   
+        # xc-uims
+        - id: xc-uims
+          uri: lb://xc-uims
+          predicates:
+            - Path=/api/uims/**
+          filters:
+            - ApiAuth
+            - ApiPermit
+            - ApiLog
+        # xc-hrms
+        - id: xc-hrms
+          uri: lb://xc-hrms
+          predicates:
+            - Path=/api/hrms/**    
+          filters:
+            # - ApiAuth
+            # - ApiPermit
+        # ibcs
+        - id: xc-ibcs
+          uri: lb://xc-ibcs
+          predicates:
+            - Path=/api/ibcs/**  
+        # mrts
+        - id: xc-mrts
+          uri: lb://xc-mrts
+          predicates:
+            - Path=/api/mrts/**    
+        # mtsg
+        - id: xc-mtsg
+          uri: lb://xc-mtsg
+          predicates:
+            - Path=/api/mtsg/** 
+        # eleme
+        - id: xc-eleme
+          uri: lb://xc-eleme
+          predicates:
+            - Path=/api/eleme/**   
+        # gms
+        - id: xc-gms
+          uri: lb://xc-gms
+          predicates:
+            - Path=/api/gms/**   
+        # xc-jdhome
+        - id: xc-jdhome
+          uri: lb://xc-jdhome
+          predicates:
+            - Path=/api/jdhome/**
+
+        # docs    
+        - id: xc-docs
+          uri: lb://xc-docs
+          predicates:
+            - Path=/api/docs/**
+
+        # oms
+        - id: xc-oms
+          uri: lb://xc-oms
+          predicates:
+            - Path=/api/oms/**
+        # wms
+        - id: xc-wms
+          uri: lb://xc-wms
+          predicates:
+            - Path=/api/wms/**
+          filters:
+            - ApiAuth
+            - ApiPermit     
+
+        # pms
+        - id: xc-pms
+          uri: lb://xc-pms
+          predicates:
+            - Path=/api/pms/**
+          filters:
+            - ApiAuth
+            - ApiPermit
+
+        # xc-mes
+        - id: xc-mes
+          uri: lb://xc-mes
+          predicates:
+            - Path=/api/mes/**
+          filters:
+            - ApiAuth
+            - ApiPermit
+
+        # xc-x6dj
+        - id: xc-x6dj
+          uri: lb://xc-x6dj
+          predicates:
+            - Path=/api/djs/**
+
+         # predict
+        - id: xc-predict
+          uri: lb://xc-predict
+          predicates:
+            - Path=/api/predict/**
+          filters:
+            - ApiAuth
+          
+
+         # warehouse
+        - id: xc-warehouse
+          uri: lb://xc-warehouse
+          predicates:
+            - Path=/api/warehouse/**    
+
+         # qms
+        - id: xc-qms
+          uri: lb://xc-qms
+          predicates:
+            - Path=/api/qms/**
+          filters:
+            - ApiAuth
+            - ApiPermit
+          # wms-inbound
+        - id: xc-wms-inbound
+          uri: lb://xc-wms-inbound
+          predicates:
+            - Path=/api/wms-inbound/**
+          filters:
+            - ApiAuth
+            - ApiPermit
+
+          # wms-task
+        - id: xc-wms-task
+          uri: lb://xc-wms-task
+          predicates:
+            - Path=/api/wms-task/**
+          filters:
+            - ApiAuth
+            - ApiPermit
+
+          # wms-warehouse
+        - id: xc-wms-warehouse
+          uri: lb://xc-wms-warehouse
+          predicates:
+            - Path=/api/wms-warehouse/**
+          filters:
+            - ApiAuth
+            - ApiPermit
+
+          # wms-outbound
+        - id: xc-wms-outbound
+          uri: lb://xc-wms-outbound
+          predicates:
+            - Path=/api/wms-outbound/**
+          filters:
+            - ApiAuth
+            - ApiPermit
+
+          # ykt 
+        - id: xc-ykt
+          uri: lb://xc-ykt
+          predicates:
+            - Path=/api/ykt/**
+
+        # wms-gss
+        - id: xc-wms-gss
+          uri: lb://xc-wms-gss
+          predicates:
+            - Path=/api/wms-gss/**
+          filters:
+            - ApiAuth
+            - ApiPermit
+        # gss
+        - id: xc-gss
+          uri: lb://xc-gss
+          predicates:
+            - Path=/api/gss/**   
+
+      # 跨域设置
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowCredentials: true
+            allowedHeaders: "*"
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - DELETE
+              - PUT
+              - OPTION
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin   
+    # sentinel:
+    #   eager: true
+    #   transport:
+    #     dashboard: localhost:8123
+    #     port: 8123
+
+  redis:
+    database: 6
+    host: 172.16.11.220
+    port: 6379
+    password: d9d47b6a3c47065efcd52b06167c4124
+    timeout: 15s
+
+
+security:
+  configs:
+    - id: xc-uims
+      commonIgnoreUrls:
+        - /api/uims/v2/api-docs
+        - /api/uims/authentication/pwd
+        - /api/uims/authentication/captcha
+        - /api/uims/authentication/sendSms
+        - /api/uims/authentication/sendDingDing
+        - /api/uims/authentication/sms
+        - /api/uims/authentication/dingDing
+        - /api/uims/authentication/logout
+        - /api/uims/application/permission/tree
+        - /api/uims/company/user/pwdUpdate
+        - /api/uims/company/user/create
+        - /api/uims/application/user/permission/tree
+        - /api/uims/company/user/resetAllUserPwd
+        - /api/uims/sms/code/**
+        - /api/uims/authentication/dingdingScan
+      permitIgnoreUrls:
+        - /api/uims/application/system/list
+        - /api/uims/application/user/system/list
+      logIgnoreUrls:
+        - /api/uims/application/system/list
+        - /api/uims/application/user/system/list
+    - id: xc-hrms
+      commonIgnoreUrls:
+        - /api/hrms/v2/api-docs
+        - /api/hrms/dingding/callBack
+        - /api/hrms/dingding/token
+        - /api/hrms/dingding/getPhoneByCode
+      permitIgnoreUrls:
+      logIgnoreUrls:
+
+    - id: xc-mes
+      commonIgnoreUrls:
+        - /api/mes/v2/api-docs
+        - /api/mes/production/**
+        - /api/mes/warehouse/**
+        - /api/mes/difficultyLevel/**
+        - /api/mes/config/**
+        - /api/mes/fg/**
+      permitIgnoreUrls:
+      logIgnoreUrls:
+
+    - id: xc-pms
+      commonIgnoreUrls:
+        - /api/pms/v2/api-docs
+        - /api/pms/gateway/**
+       
+      permitIgnoreUrls:
+      logIgnoreUrls:
+    
+    - id: xc-predict
+      commonIgnoreUrls:
+        - /api/predict/v2/api-docs
+        - /api/predict/**
+      permitIgnoreUrls:
+      logIgnoreUrls:
+
+
+    - id: xc-qms
+      commonIgnoreUrls:
+        - /api/qms/v2/api-docs
+        - /api/qms/fg/**
+        - /api/qms/**
+       
+      permitIgnoreUrls:
+      logIgnoreUrls:
+
+    - id: xc-wms-task
+      commonIgnoreUrls:
+        - /api/wms-task/v2/api-docs
+        - /api/wms-task/gateway/**
+       
+      permitIgnoreUrls:
+      logIgnoreUrls:
+
+    - id: xc-wms-warehouse
+      commonIgnoreUrls:
+        - /api/wms-warehouse/v2/api-docs
+        - /api/wms-warehouse/gateway/**
+       
+      permitIgnoreUrls:
+      logIgnoreUrls:
+
+    - id: xc-wms-outbound
+      commonIgnoreUrls:
+        - /api/wms-outbound/v2/api-docs
+        - /api/wms-outbound/gateway/**
+        - /api/wms-outbound/pda/task/testMq
+        - /api/wms-outbound/tranferMessage/message
+        - /api/wms-outbound/allotment/reTask
+        - /api/wms-outbound/allotment/test
+       
+      permitIgnoreUrls:
+      logIgnoreUrls:
+
+    - id: xc-wms-inbound
+      commonIgnoreUrls:
+        - /api/wms-inbound/v2/api-docs
+        - /api/wms-inbound/gateway/**
+        - /api/wms-inbound/transfer/verificationResults/createFromPhp
+       
+      permitIgnoreUrls:
+      logIgnoreUrls:
+    - id: xc-wms
+      commonIgnoreUrls:
+        - /api/wms/v2/api-docs
+        - /api/wms/gateway/**
+       
+      permitIgnoreUrls:
+      logIgnoreUrls:
+
+    - id: xc-wms-gss
+      commonIgnoreUrls:
+        - /api/wms-gss/v2/api-docs
+        - /api/wms-gss/gateway/**
+       
+      permitIgnoreUrls:
+      logIgnoreUrls:
