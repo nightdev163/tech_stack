@@ -1,9 +1,9 @@
-
-import Element.ElementDemo;
+import Kafka.Demo;
 
 public class App {
+    
     public static void main(String[] args) throws Exception  {
-        ElementDemo demo = new ElementDemo();
-        demo.run();
+        Demo demo = new Demo();
+        demo.sinkToKafkaHadoop();
     }
 }

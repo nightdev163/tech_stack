@@ -1,0 +1,94 @@
+flink 如何从指定kafka指定位置读取数据
+flink 如何保存上一次对数据流的处理结果
+
+Q:费者如何提交偏移量
+A:
+ env.enableCheckpointing(1000);
+ env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);   // this is default
+
+Q:如何控制流的输入数量
+
+A:
+        KafkaSource.<String>builder()
+                .setBounded(OffsetsInitializer.offsets(new HashMap<TopicPartition, Long>(){{
+                        put(new TopicPartition(topic, 0), 100L);
+                }}))
+
+A:什么是flink的序列化？
+Q:把流中的数据格式转化为程序中想要的数据格式(类),反序列化就是反过程
+
+A:如何把kafka中的记录导入flink后转换成json
+Q:
+        需要自己实现反序列化对象 class KafkaJsonDeserialization implements KafkaRecordDeserializationSchema<JSONObject>
+        详见primary工程中Demo.deserializeObject 样例
+
+Q:重启后为什么丢失了之前的消费信息?
+
+Q:如何把工作流程交给集群(jobmanager)计算(当前的计算是发生在(生成工作流图的机器)中的)
+A:有两种方法:
+Command Line Interface
+	The command line interface lets you submit packaged programs (JARs) to a cluster (or single machine setup).
+Please refer to the Command Line Interface documentation for details.
+
+
+Remote Environment
+	The remote environment lets you execute Flink Java programs on a cluster directly. The remote environment points to the cluster on which you want to execute the program.
+
+public static void main(String[] args) throws Exception {
+    ExecutionEnvironment env = ExecutionEnvironment
+        .createRemoteEnvironment("flink-jobmanager", 8081, "/home/user/udfs.jar");
+
+    DataSet<String> data = env.readTextFile("hdfs://path/to/file");
+
+    data
+        .filter(new FilterFunction<String>() {
+            public boolean filter(String value) {
+                return value.startsWith("http://");
+            }
+        })
+        .writeAsText("hdfs://path/to/result");
+
+    env.execute();
+}
+
+
+----------------- deploy ---------------------
+
+Q:flink 集群如何部署?
+
+
+Q:如何启动 jobmanager.sh脚本
+A:mac 要用./方式启动 不能sh方式启动(具体脚本相关知识不明)
+启动后jps命令可以看到 27326 StandaloneSessionClusterEntrypoint
+
+参考解释：
+	shell script一般第一行指定解释器，所以还是指定#!/bin/bash好，不要再用#!/bin/sh了。
+sh是一个shell。运行sh a.sh，表示我使用sh来解释这个脚本；如果我直接运行./a.sh，首先你会查找脚本第一行是否指定了解释器，如果没指定，那么就用当前系统默认的shell(大多数linux默认是bash)，如果指定了解释器，那么就将该脚本交给指定的解释器。
+
+
+Q:jobmanager.sh与start-cluster.sh区别?
+A:未知
+
+Q:如何启动taskmanager.sh
+A:./TaskManagerRunner
+启动后可以看到 TaskManagerRunner
+
+
+Q:flink应用代码的依赖打包
+A:
+
+	     <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>App</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+mvn assembly:assembly
+

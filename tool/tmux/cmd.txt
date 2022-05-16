@@ -125,3 +125,6 @@ without -T: bound in the prefix key table <=> defaut table <=> C-b + key
 tmux swap-window [-d] [-s src-window] [-t dst-window]
 
 
+翻页
+进入翻页 ctl+b [ 退出翻页 ctl+c
+

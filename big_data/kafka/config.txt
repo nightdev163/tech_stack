@@ -1,0 +1,8 @@
+config location
+
+
+primary config
+log.dir
+log.dirs
+
+

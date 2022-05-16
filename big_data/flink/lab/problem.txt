@@ -1,0 +1,5 @@
+concept:
+	client.id.prefix defines the prefix to use for Kafka consumer’s client ID
+	partition.discovery.interval.ms defines the interval im milliseconds for Kafka source to discover new partitions. See Dynamic Partition Discovery below for more details.
+	register.consumer.metrics specifies whether to register metrics of KafkaConsumer in Flink metric group
+	commit.offsets.on.checkpoint specifies whether to commit consuming offsets to Kafka brokers on checkpoint

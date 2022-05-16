@@ -1,0 +1,158 @@
+
+StreamExecutionEnvironment->JobExecutionResult execute() throws Exception
+        this.getStreamGraph()=>streamGraph          !! get streamGraph  
+
+LocalStreamEnvironment->execute(StreamGraph streamGraph) throws Exception 
+        return super.execute(streamGraph);
+
+StreamExecutionEnvironment->execute(StreamGraph streamGraph) throws Exception
+        
+
+StreamExecutionEnvironment->executeAsync(StreamGraph streamGraph)  throws Exception
+        streamGraph => pipeline
+        this.configuration => configuration
+        this.userClassloader => userCodeClassloader
+
+LocalExecutor->execute(Pipeline pipeline, Configuration configuration, ClassLoader userCodeClassloader)
+        Configuration effectiveConfig = new Configuration();
+        this.getJobGraph(pipeline, effectiveConfig)
+       
+LocalExecutor->getJobGraph(Pipeline pipeline, Configuration configuration)
+        PipelineExecutorUtils->getJobGraph(pipeline, configuration);
+
+PipelineExecutorUtils->getJobGraph(@Nonnull Pipeline pipeline, @Nonnull Configuration configuration)
+        pipeline, configuration  =FlinkPipelineTranslationUtil->getJobGraph=> jobGraph          !! to get job graph
+FlinkPipelineTranslationUtil->getJobGraph(Pipeline pipeline, Configuration optimizerConfiguration, int defaultParallelism)
+        pipeline=>pipelineTranslator
+        pipelineTranslator->translateToJobGraph(pipeline, optimizerConfiguration, defaultParallelism)
+
+StreamGraphTranslator->translateToJobGraph(Pipeline pipeline, Configuration optimizerConfiguration, int defaultParallelism)
+     (StreamGraph)pipeline->getJobGraph((JobID)null)                                            !! streamGraph to jobGraph
+     
+--------------------------------------------------------------------------------------------------------------------------------------------
+     
+StreamGraph->getJobGraph(this, jobID)
+StreamingJobGraphGenerator->createJobGraph (StreamGraph, jobId)
+    streamGraph, jobID => StreamingJobGraphGenerator
+    
+new StreamingJobGraphGenerator(streamGraph, jobID)
+    streamGraph => this.streamGraph
+    new StreamGraphUserHashHasher() => this.legacyStreamGraphHashers
+
+StreamingJobGraphGenerator->createJobGraph()
+    this.streamGraph ==== StreamGraphHasherV2.traverseStreamGraphAndGenerateHashes ===> hashes
+    this.legacyStreamGraphHashers => legacyHashes
+    
+StreamingJobGraphGenerator->setChaining(Map<Integer, byte[]> hashes, List<Map<Integer, byte[]>> legacyHashes)
+    [hashes, legacyHashes] => this.buildChainedInputsAndGetHeadInputs =>  Map<Integer, StreamingJobGraphGenerator.OperatorChainInfo> chainEntryPoints !! important
+    chainEntryPoint => initialEntryPoints => Iterator<StreamingJobGraphGenerator.OperatorChainInfo> 
+
+StreamingJobGraphGenerator->createChain(
+    Integer currentNodeId, int chainIndex, StreamingJobGraphGenerator.OperatorChainInfo chainInfo, Map<Integer, StreamingJobGraphGenerator.OperatorChainInfo> chainEntryPoints)
+    chainInfo => streamNodeId
+StreamingJobGraphGenerator->createJobVertex(streamNodeId, chainInfo)
+    chainInfo->coordinatorProvider !!! can not convert
+    
+    
+    
+    
+-------------------------------
+StreamExecutionEnvironment->JobExecutionResult execute() throws Exception
+StreamExecutionEnvironment.getStreamGraph()
+    true => clearTransformations
+StreamExecutionEnvironment.getStreamGraph(boolean clearTransformations)
+StreamExecutionEnvironment.getStreamGraphGenerator(this.transformations)
+    this => StreamGraphGenerator
+StreamGraphGenerator.generate();
+
+----------------------------------
+
+    streamGraph + new StreamGraphUserHashHasher()
+        => hashes + legacyHashes
+        ==== StreamingJobGraphGenerator.buildChainedInputsAndGetHeadInputs ===>
+        ===> Iterator<StreamingJobGraphGenerator.OperatorChainInfo> 
+        
+        
+StreamingJobGraphGenerator.buildChainedInputsAndGetHeadInputs
+    hashes => OperatorID opId
+    this.streamGraph => StreamNode sourceNode => SourceOperatorFactory<?> sourceOpFact
+    sourceNode + opId => Provider coord                                                     // !! create coordinatorProviders
+    
+    
+    
+     OperatorID currentOperatorId = chainInfo.addNodeToChain(currentNodeId, this.streamGraph.getStreamNode(currentNodeId).getOperatorName());
+     
+     
+---------------- process to create stream node -----------------------------
+
+StreamExecutionEnvironment->execute() throws Exception
+StreamExecutionEnvironment->execute(StreamGraph streamGraph) throws Exception
+    this.transformations
+StreamExecutionEnvironment->getStreamGraphGenerator(List<Transformation<?>> transformations)
+StreamGraphGenerator->generate()
+    this.transformations->iter<transform>
+StreamGraphGenerator->transform(Transformation<?> transform)                // 第一次进transform
+    transform -> TransformationTranslator<?, Transformation<?>> translator
+StreamGraphGenerator->translate(translator, transform)
+    transform.getInputs()->parentTransformations
+StreamGraphGenerator->getParentInputIds(parentTransformations)
+    parentTransformations->iterator<Transformation>
+StreamGraphGenerator->transform(Transformation<?> transform)                // 第二次进transform
+    transform -> TransformationTranslator<?, Transformation<?>> translator
+StreamGraphGenerator->translate(translator, transform)
+    transform => slotSharingGroup
+    this => context
+
+
+--- source node create -----   
+
+StreamGraphGenerator->translateForBatch(T transformation, Context context)
+    abstract translateForBatchInternal(T var1, Context var2)   
+SourceTransformationTranslator->translateForBatchInternal(SourceTransformation<OUT, SplitT, EnumChkT> transformation, Context context)
+    false => emitProgressiveWatermarks
+SourceTransformationTranslator->translateInternal(SourceTransformation<OUT, SplitT, EnumChkT> transformation, Context context, boolean emitProgressiveWatermarks)
+    transformation ===> transformationId
+    context => slotSharingGroup
+    transformation ===  new SourceOperatorFactory(transformation.getSource(), transformation.getWatermarkStrategy(), emitProgressiveWatermarks) ===> operatorFactory
+    
+StreamGraph->addSource(Integer vertexID, @Nullable String slotSharingGroup, @Nullable String coLocationGroup, SourceOperatorFactory<OUT> operatorFactory, TypeInformation<IN> inTypeInfo, TypeInformation<OUT> outTypeInfo, String operatorName)
+StreamGraph->addOperator(Integer vertexID, @Nullable String slotSharingGroup, @Nullable String coLocationGroup, StreamOperatorFactory<OUT> operatorFactory, TypeInformation<IN> inTypeInfo, TypeInformation<OUT> outTypeInfo, String operatorName, Class<? extends TaskInvokable> invokableClass)
+StreamGraph->addNode(Integer vertexID, @Nullable String slotSharingGroup, @Nullable String coLocationGroup, Class<? extends TaskInvokable> vertexClass, StreamOperatorFactory<?> operatorFactory, String operatorName)
+    
+transformation => operatorFactory => node.operatorFactory
+
+
+---- print node create ----
+SimpleTransformationTranslator->translateForBatch(T transformation, Context context)
+// LegacySinkTransformationTranslator extends SimpleTransformationTranslator
+LegacySinkTransformationTranslator->translateForBatchInternal(LegacySinkTransformation<IN> transformation, Context context)
+LegacySinkTransformationTranslator->translateInternal(LegacySinkTransformation<IN> transformation, Context context)
+    transformation === transformation.getOperatorFactory() ==> operatorFactory
+StreamGraph->addSink(Integer vertexID, @Nullable String slotSharingGroup, @Nullable String coLocationGroup, StreamOperatorFactory<OUT> operatorFactory, TypeInformation<IN> inTypeInfo, TypeInformation<OUT> outTypeInfo, String operatorName)
+StreamGraph->addOperator(Integer vertexID, @Nullable String slotSharingGroup, @Nullable String coLocationGroup, StreamOperatorFactory<OUT> operatorFactory, TypeInformation<IN> inTypeInfo, TypeInformation<OUT> outTypeInfo, String operatorName)
+StreamGraph->addNode(Integer vertexID, @Nullable String slotSharingGroup, @Nullable String coLocationGroup, Class<? extends TaskInvokable> vertexClass, StreamOperatorFactory<?> operatorFactory, String operatorName)
+
+
+SourceOperatorFactory
+SimpleUdfStreamOperatorFactory
+
+
+SerializedValue
+
+AbstractUdfStreamOperator implement Serializable
+SimpleUdfStreamOperatorFactory implement Serializable
+
+
+
+cmp
+
+boundedDemo
+source SimpleUdfStreamOperatorFactory
+
+
+SourceCoordinatorProvider
+
+
+ObjectOutputStream 416
+
+

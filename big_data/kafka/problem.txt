@@ -1,0 +1,123 @@
+------------------------ kafka中的概念问题 --------------------------
+Q: glossary
+control
+
+Q: kafuka队列里的数据 会永久存在吗 还是说消费后就消失
+A: 数据会永远存在log日志里
+
+
+Q:通过connect 把mysql 数据导入库kafuka，每次重启会重复倒入吗？
+A: 通过检查日志的时间戳发现,不会重新导入，只有数据库发生变化，日志的时间戳才会更新
+
+Q:通过connect 把mysql 的数据导入kafuka 可以指定导入的起始位置吗？还是说必须有消费者来控制读取位置？
+
+
+
+Q:zookeeper配合kafka做什么
+
+
+Q: mac上kafka消息没有生成log?
+A: 需要手动建立日志目录
+
+
+
+Q: flink 可以从kafka指定位置(offset)读取数据吗？如果可以，API是哪个？
+org.apache.flink.connector.kafka.source.KafkaSource setStartingOffsets 方法可以指定读取位置.
+
+
+Q: flink 如何存储上一次处理的数据的位置和结果?
+
+
+Q:kafka group 概念
+
+Consumer Group：消费者组，消费者组则是一组中存在多个消费者，消费者消费Broker中当前Topic的不同分区中的消息，消费者组之间互不影响，所有的消费者都属于某个消费者组，即消费者组是逻辑上的一个订阅者。某一个分区中的消息只能够一个消费者组中的一个消费者所消费。
+
+消息生产者发布消息到Queue队列中，通知消费者从队列中拉取消息进行消费。消息被消费之后则删除，Queue支持多个消费者，但对于一条消息而言，只有一个消费者可以消费，即一条消息只能被一个消费者消费。
+
+Kafka的消费模式主要有两种：一种是一对一的消费，也即点对点的通信，即一个发送一个接收。第二种为一对多的消费，即一个消息发送到消息队列，消费者根据消息队列的订阅拉取消息消费。
+
+
+Q:查看主题中的记录条数？
+
+--time-1 表示要获取指定topic所有分区当前的最大位移
+/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list localhost:9092 --topic db-search.search.t_cfg_global --time -1
+
+--time-2 表示获取当前最早位移
+bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list localhost:9092 --topic db-search.search.t_cfg_global --time -2
+
+
+Q:如何消费一条记录?
+
+Q:主题中的记录条数会随着消费减少吗？还是只改变了消费者的offset
+A:消费后topic的offset会保存在一个内置的topic中
+Kafka0.9版本之前，consumer默认将offset保存在zookeeper中，从0.9版本之后，consumer默认将offset保存在kafka一个内置的topic中，该topic为__consumer_offsets。
+
+
+Q:kafka中的 leader follow 概念
+
+A:Leader：每个分区多个副本的主角色，生产者发送数据的对象，以及消费者消费数据的对象都是Leader。
+Follower：每个分区多个副本的从角色，实时的从Leader中同步数据，保持和Leader数据的同步，Leader发生故障的时候，某个Follower会成为新的Leader。
+
+
+Q: kafka中的controller概念? zookeeper对kafka的作用体现在哪里?
+A: Kafka集群中有一个broker会被选举为Controller，负责管理集群broker的上下线、所有topic的分区副本分配和leader的选举等工作。Controller的工作管理是依赖于Kooeeper的。
+
+Q: 消费者可以没有消费组吗？
+A: 消费者负责订阅 Kafka 中的主题（Topic），并且从订阅的主题上拉取消息。与其他一些消息中间件不同的是：在 Kafka 的消费理念中还有一层消费组的概念，每个消费者都有一个对应的消费组。当消息发布到主题后，只会被投递给订阅它的每个消费组中的一个消费者。
+
+Q: 调用kafka-console-consumer.sh消费kafka数据如何提交偏移量（默认是不提交的）
+A:需要指定配置文件--consumer.config /opt/kafka_2.13-3.0.0/config/consumer.properties 配置中enable.auto.commit=true 
+
+Q: enable.auto.commit 这个配置是存在于consumer.properties中的吗？
+是的，这是consumer.properties中的一个配置
+
+Q: consumer.properties 可以提交给kafka-console-consumer.sh脚本吗？
+可以，这个文件通过--consumer.config传递给 kafka-console-consumer.sh脚本
+
+Q: zookeeper上有kafka消费信息吗？如果有，如何查看，删除
+
+Q: 如何删除一个主题下的所有日志?
+
+Q: kafka用zookeeper干什么 ？
+A:	 1 集群管理，broker的动态上下线
+	 2 各个topic的分区信息
+	 3 分区信息，leader信息,leader-flower信息组信息
+
+Q: __consumer_offsets主题保存什么信息?
+A: 保存着消费者组、topic、topic分区和offset的信息。
+
+
+Q:kafka中的key value 概念
+
+
+Q:kafka运行日志哪里看（本地kafka突然down不知道哪里找日志）
+
+---------------------- flink api中的api用法  -----------------------
+
+Q:费者如何提交偏移量
+A:
+ env.enableCheckpointing(1000);
+ env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);   // this is default
+
+Q:如何控制流的输入数量
+
+A:
+	KafkaSource.<String>builder()
+		.setBounded(OffsetsInitializer.offsets(new HashMap<TopicPartition, Long>(){{
+                        put(new TopicPartition(topic, 0), 100L); 
+                }}))
+
+A:什么是flink的序列化？
+Q:把流中的数据格式转化为程序中想要的数据格式(类),反序列化就是反过程
+
+A:如何把kafka中的记录导入flink后转换成json
+Q:
+	需要自己实现反序列化对象 class KafkaJsonDeserialization implements KafkaRecordDeserializationSchema<JSONObject>
+	详见primary工程中Demo.deserializeObject 样例 
+
+A:重启后为什么丢失了之前的消费信息?
+
+A:如何把工作流程交给集群计算(当前的计算是发生在java中的)
+
+
+

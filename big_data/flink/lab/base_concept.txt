@@ -31,6 +31,9 @@ StateBackend
 	In STREAMING mode, Flink uses a StateBackend to control how state is stored and how checkpointing works.
 	In BATCH mode, the configured state backend is ignored.
 
+checkpoint
+	状态是针对流处理模型的,checkpint是针对有状态的流处理模型设计的，不针对批处理
+
 
 [event, event time, timely stream processing, event time timestamps, processing time]
 Timely Stream Processing 
@@ -123,8 +126,11 @@ Split Eumerator
 
 [
 keyed stream?
+keyed state
 event’s key?
+state partition
 ]
+If you want to use keyed state, you first need to specify a key on a DataStream that should be used to partition the state
 
 
 
@@ -139,5 +145,10 @@ WatermarkGenerator
 WatermarkStrategy
 	The Flink API expects a WatermarkStrategy that contains both a TimestampAssigner and WatermarkGenerator.
 
+
+
+
+Source Split
+	A source split in Kafka source represents a partition of Kafka topic. 
 
 
