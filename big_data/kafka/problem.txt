@@ -88,6 +88,7 @@ A: 保存着消费者组、topic、topic分区和offset的信息。
 
 
 Q:kafka中的key value 概念
+Keys are used to determine the partition within a log to which a message get's appended to. While the value is the actual payload of the message. The examples are actually not very "good" with this regard; usually you would have a complex type as value (like a tuple-type or a JSON or similar) and you would extract one field as key.
 
 
 Q:kafka运行日志哪里看（本地kafka突然down不知道哪里找日志）

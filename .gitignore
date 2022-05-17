@@ -8,4 +8,4 @@ lib
 source
 source/*
 *.jar
-
+*.zip

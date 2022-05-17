@@ -1,0 +1,5 @@
+Q:如何打包部署primary工程
+mvn package 打一个jar包
+mvn assembly:assembly 打一个jar包
+部署两个jar包放在同一个目录下
+
