@@ -1,0 +1,116 @@
+KafkaMessageListenerContainer
+	The KafkaMessageListenerContainer receives all message from all topics or partitions on a single thread. 
+	
+
+ConcurrentMessageListenerContainer
+	The ConcurrentMessageListenerContainer delegates to one or more KafkaMessageListenerContainer instances to provide multi-threaded consumption.
+
+
+ConsumerAwareRecordInterceptor, BatchInterceptor	// 拦截器
+	 In addition, the ConsumerAwareRecordInterceptor (and BatchInterceptor) provide access to the Consumer<?, ?>. This might be used, for example, to access the consumer metrics in the interceptor.
+
+RecordInterceptor ConsumerAwareRecordInterceptor BatchInterceptor 是 Container 里成员
+
+Starting with version 2.2.4, you can specify Kafka consumer properties directly on the annotation, these will override any properties with the same name configured in the consumer factory. You cannot specify the group.id and client.id properties this way; they will be ignored; use the groupId and clientIdPrefix annotation properties for those.
+
+
+The properties are specified as individual strings with the normal Java Properties file format: foo:bar, foo=bar, or foo bar.
+
+@KafkaListener(topics = "myTopic", groupId = "group", properties = {
+    "max.poll.interval.ms:60000",
+    ConsumerConfig.MAX_POLL_RECORDS_CONFIG + "=100"
+})
+
+@KafkaListener(id = "one", topics = "one")
+public void listen1(String in) {
+    System.out.println("1: " + in);
+}
+
+@KafkaListener(id = "two", topics = "two",
+        properties = "value.deserializer:org.apache.kafka.common.serialization.ByteArrayDeserializer")
+public void listen2(byte[] in) {
+    System.out.println("2: " + new String(in));
+}
+
+
+
+listener containers
+The listener containers created for @KafkaListener annotations are not beans in the application context. Instead, they are registered with an infrastructure bean of type KafkaListenerEndpointRegistry. 
+
+@KafkaListener(id = "multi", topics = "myTopic")
+static class MultiListenerBean {
+
+    @KafkaHandler
+    public void listen(String foo) {
+        ...
+    }
+
+    @KafkaHandler
+    public void listen(Integer bar) {
+        ...
+    }
+
+    @KafkaHandler(isDefault = true)
+    public void listenDefault(Object object) {
+        ...
+    }
+
+}
+
+!!注意 listener中id属性, The unique identifier of the container for this listener. 不是listener id
+
+
+
+
+ContainerProperties
+	consumerRebalanceListener
+	
+
+Q: rebalance 是什么概念?
+
+
+Q: revoke 是什么概念?
+
+
+
+
+Thread Safety
+
+A:concurrent message listener container线程安全吗?
+
+Q:When using a concurrent message listener container, a single listener instance is invoked on all consumer threads. 
+
+
+
+A:how to gurantee thread safe?
+
+Q:
+Use n containers with concurrency=1 with a prototype scoped MessageListener bean so that each container gets its own instance (this is not possible when using @KafkaListener).
+
+Keep the state in ThreadLocal<?> instances.
+
+Have the singleton listener delegate to a bean that is declared in SimpleThreadScope (or a similar scope).
+
+第一个方法最简单吧
+第三个方法还要清理线程状态
+To facilitate cleaning up thread state (for the second and third items in the preceding list), starting with version 2.2, the listener container publishes a ConsumerStoppedEvent when each thread exits. You can consume these events with an ApplicationListener or @EventListener method to remove ThreadLocal<?> instances or remove() thread-scoped beans from the scope. Note that SimpleThreadScope does not destroy beans that have a destruction interface (such as DisposableBean), so you should destroy() the instance yourself.
+
+
+4.1.11 Monitorying
+Q:MicrometerConsumerListener, 这个类是干啥的？
+A:
+
+Q:MicrometerConsumerListener 的成员 MeterRegistry 是干啥的
+A:
+
+Q:MicrometerConsumerListener 的成员 Map<String, KafkaClientMetrics> metrics 是干啥的
+A:
+
+
+Q:DefaultKafkaConsumerFactory如何添加 MicrometerConsumerListener
+A:
+DefaultKafkaConsumerFactory<String, String> cf = new DefaultKafkaConsumerFactory<>(configs);
+cf.addListener(new MicrometerConsumerListener<String, String>(meterRegistry(),
+            Collections.singletonList(new ImmutableTag("customTag", "customTagValue"))));
+
+

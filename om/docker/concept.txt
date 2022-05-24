@@ -1,0 +1,10 @@
+https://docs.docker.com/get-started/
+
+container:
+	Simply put, a container is a sandboxed process on your machine that is isolated from all other processes on the host machine.
+
+
+container image:
+	This custom filesystem is provided by a container image.Since the image contains the container’s filesystem, it must contain everything needed to run an application - all dependencies, configuration, scripts, binaries, etc. 
+
+
