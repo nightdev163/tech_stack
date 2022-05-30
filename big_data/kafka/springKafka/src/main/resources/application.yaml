@@ -1,3 +1,14 @@
-spring:
-  profiles:
-    active: '@profileActive@'
+spring.profiles.active: '@profileActive@'
+
+spring.kafka.consumer.properties.partion.assignment.strategy=apache.kafka.clients.consumer.RoundRobinAssignor
+    
+#    consumer
+#      properties:
+#        partition:
+#          assignment:
+#            strategy=org:
+#              apache:
+#                kafka:
+#                  clients:
+#                    consumer:
+#                      RoundRobinAssignor:

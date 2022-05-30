@@ -1,3 +1,10 @@
+4.1.3 Sending Messages
+Q:什么是KafkaTemplate
+A:The KafkaTemplate wraps a producer and provides convenience methods to send data to Kafka topics. The following listing shows the relevant methods from KafkaTemplate.
+
+
+4.1.4 Receiving Messages
+
 KafkaMessageListenerContainer
 	The KafkaMessageListenerContainer receives all message from all topics or partitions on a single thread. 
 	
@@ -113,4 +120,80 @@ DefaultKafkaConsumerFactory<String, String> cf = new DefaultKafkaConsumerFactory
 cf.addListener(new MicrometerConsumerListener<String, String>(meterRegistry(),
             Collections.singletonList(new ImmutableTag("customTag", "customTagValue"))));
 
+
+4.1.12. Transactions
+Q:如何启用Transactions
+A:需要提供DefaultKafkaProducerFactory 和 transactionIdPrefix
+
+
+Q:DefaultKafkaProducerFactory(factory) 在Transactions 处理中是干嘛的?
+A:. In that case, instead of managing a single shared Producer, the factory maintains a cache of transactional producers. When the user calls close() on a producer, it is returned to the cache for reuse instead of actually being closed.
+
+Q:transactional.id 是如何构成的
+A: The transactional.id property of each producer is transactionIdPrefix + n, where n starts with 0 and is incremented for each new producer, unless the transaction is started by a listener container with a record-based listener. In that case, the transactional.id is <transactionIdPrefix>.<group.id>.<topic>.<partition>. 
+
+Q:什么是fencing zombies
+A:https://www.confluent.io/blog/transactions-apache-kafka/
+
+Q:如何在spring boot时间transaction practice
+A:With Spring Boot, it is only necessary to set the spring.kafka.producer.transaction-id-prefix property - Boot will automatically configure a KafkaTransactionManager bean and wire it into the listener container.
+
+Q:KafkaTransactionManager introduce
+The KafkaTransactionManager is an implementation of Spring Framework’s PlatformTransactionManager. It is provided with a reference to the producer factory in its constructor. If you provide a custom producer factory, it must support transactions. See ProducerFactory.transactionCapable().
+
+You can use the KafkaTransactionManager with normal Spring transaction support (@Transactional, TransactionTemplate, and others). If a transaction is active, any KafkaTemplate operations performed within the scope of the transaction use the transaction’s Producer. The manager commits or rolls back the transaction, depending on success or failure. You must configure the KafkaTemplate to use the same ProducerFactory as the transaction manager.
+
+
+
+Transaction Synchronization
+kafka transaction example
+@Transactional
+public void process(List<Thing> things) {
+    things.forEach(thing -> this.kafkaTemplate.send("topic", thing));
+    updateDb(things);
+}
+When the method exits, the database transaction will commit followed by the Kafka transaction. If you wish the commits to be performed in the reverse order (Kafka first), use nested @Transactional methods, with the outer method configured to use the DataSourceTransactionManager, and the inner method configured to use the KafkaTransactionManager.
+
+
+Consumer-Initiated Transactions
+use a KafkaTransactionManager in the container to start the Kafka transaction and annotate the listener method with @Transactional to start the other transaction.
+
+
+KafkaTemplate Local Transactions
+You can use the KafkaTemplate to execute a series of operations within a local transaction. The following example shows how to do so:
+boolean result = template.executeInTransaction(t -> {
+    t.sendDefault("thing1", "thing2");
+    t.sendDefault("cat", "hat");
+    return true;
+});
+The argument in the callback is the template itself (this). If the callback exits normally, the transaction is committed. If an exception is thrown, the transaction is rolled back.
+
+
+transaction example
+
+@Transactional
+public void process(List<Thing> things) {
+    things.forEach(thing -> this.kafkaTemplate.send("topic", thing));
+    updateDb(things);
+}
+The interceptor for the @Transactional annotation starts the transaction and the KafkaTemplate will synchronize a transaction with that transaction manager; each send will participate in that transaction. When the method exits, the database transaction will commit followed by the Kafka transaction.
+
+The KafkaTemplate will synchronize its transaction with the DB transaction and the commit/rollback occurs after the database.
+@Transactional("dstm")
+public void someMethod(String in) {
+    this.kafkaTemplate.send("topic2", in.toUpperCase());
+    this.jdbcTemplate.execute("insert into mytable (data) values ('" + in + "')");
+}
+
+If you wish to commit the Kafka transaction first, and only commit the DB transaction if the Kafka transaction is successful, use nested @Transactional methods:
+@Transactional("dstm")
+public void someMethod(String in) {
+    this.jdbcTemplate.execute("insert into mytable (data) values ('" + in + "')");
+    sendToKafka(in);
+}
+
+@Transactional("kafkaTransactionManager")
+public void sendToKafka(String in) {
+    this.kafkaTemplate.send("topic2", in.toUpperCase());
+}
 
