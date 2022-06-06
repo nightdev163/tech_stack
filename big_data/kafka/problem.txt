@@ -93,6 +93,25 @@ Keys are used to determine the partition within a log to which a message get's a
 
 Q:kafka运行日志哪里看（本地kafka突然down不知道哪里找日志）
 
+
+---------------------- kafka 故障解决 --------------------------
+
+Q:为什么本地机器重启后,kafka的主题日志都没了
+A:因为 /tmp 目录在重新启动后被删除
+解决方案
+修改kafka目录下zookeeper配置的 config/zookeeper.properties
+dataDir=/UserHome/zookeeper-verson/data
+dataLogDir=/UserHome/zookeeper-version/log
+
+修改kafka目录下的kafka配置 config/server.properties
+log.dir=/UserHome/kafka-version/data
+# The number of messages to accept before forcing a flush of data to disk
+log.flush.interval.messages=10000 
+# The maximum amount of time a message can sit in a log before we force a flush
+log.flush.interval.ms=1000
+
+
+
 ---------------------- flink api中的api用法  -----------------------
 
 Q:费者如何提交偏移量

@@ -3,6 +3,13 @@ Q:什么是KafkaTemplate
 A:The KafkaTemplate wraps a producer and provides convenience methods to send data to Kafka topics. The following listing shows the relevant methods from KafkaTemplate.
 
 
+Q:producer 是哪个对象创建的
+A:
+
+
+Q:producer 数量如何控制
+A:
+
 4.1.4 Receiving Messages
 
 KafkaMessageListenerContainer
@@ -176,7 +183,7 @@ public void process(List<Thing> things) {
     things.forEach(thing -> this.kafkaTemplate.send("topic", thing));
     updateDb(things);
 }
-The interceptor for the @Transactional annotation starts the transaction and the KafkaTemplate will synchronize a transaction with that transaction manager; each send will participate in that transaction. When the method exits, the database transaction will commit followed by the Kafka transaction.
+The interceptor for the @Transactional annotation starts the transaction and the KafkaTemplate will synchronize a transaction with that transaction manager; each send will participate in that transaction. When the method exits, the database transaction will commit followed by the Kafka transaction.t
 
 The KafkaTemplate will synchronize its transaction with the DB transaction and the commit/rollback occurs after the database.
 @Transactional("dstm")
@@ -196,4 +203,52 @@ public void someMethod(String in) {
 public void sendToKafka(String in) {
     this.kafkaTemplate.send("topic2", in.toUpperCase());
 }
+
+
+4.1.13 Exactly Once Semantics
+
+Q: what is Exactly Once Sematics (EOS)
+A:This means that, for a read→process-write sequence, it is guaranteed that the sequence is completed exactly once. (The read and process are have at least once semantics).
+
+
+4.1.14. Wiring Spring Beans into Producer/Consumer Interceptors
+
+Q:what is interceptor
+A:Apache Kafka provides a mechanism to add interceptors to producers and consumers. These objects are managed by Kafka, not Spring, and so normal Spring dependency injection won’t work for wiring in dependent Spring Beans. However, you can manually wire in those dependencies using the interceptor config() method. 
+
+
+4.1.17. Serialization, Deserialization, and Message Conversion
+
+It is present with the org.apache.kafka.common.serialization.Serializer<T> and org.apache.kafka.common.serialization.Deserializer<T> abstractions with some built-in implementations.
+
+Q:如何设置序列化和反序列化对象
+A: 
+1 通过config添加
+code example
+@Bean
+    public ConsumerFactory<?, ?> kafkaConsumerFactory(SomeBean someBean) {
+        Map<String, Object> consumerProperties = new HashMap<>();
+        consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class);
+        consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(consumerProperties);
+    }
+    
+@Bean
+    public ProducerFactory<?, ?> kafkaProducerFactory(SomeBean someBean) {
+        Map<String, Object> producerProperties = new HashMap<>();
+        producerProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
+        producerProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+	return new DefaultKafkaProducerFactory<>(producerProperties);
+    } 
+
+2 KafkaConsumer KafkaProducer 构造函数参数里可以设置
+
+Q:实现一个基础的json序列化
+A:
+Spring for Apache Kafka also provides JsonSerializer and JsonDeserializer implementations that are based on the Jackson JSON object mapper. 
+
+
+
+
+
 
