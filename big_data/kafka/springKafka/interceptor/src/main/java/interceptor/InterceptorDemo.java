@@ -62,21 +62,21 @@ public class InterceptorDemo {
         return new SomeBean();
     }
     
-    @KafkaListener(id="kgk897", topics="kgh897")
-    public void listen(String in) {
-        System.out.println("Received " + in);
-    }
-    
-    @Bean
-    public ApplicationRunner runner(KafkaTemplate<String, String> template) {
-        return args->template.send("kgh897", "test");
-    }
-    
-    @Bean
-    public NewTopic kRequest() {
-        return TopicBuilder.name("pause.resume.topic")
-                .partitions(2)
-                .replicas(1)
-                .build();
-    }
+//    @KafkaListener(id="kgk897", topics="kgh897")
+//    public void listen(String in) {
+//        System.out.println("Received " + in);
+//    }
+//    
+//    @Bean
+//    public ApplicationRunner runner(KafkaTemplate<String, String> template) {
+//        return args->template.send("kgh897", "test");
+//    }
+//    
+//    @Bean
+//    public NewTopic kRequest() {
+//        return TopicBuilder.name("pause.resume.topic")
+//                .partitions(2)
+//                .replicas(1)
+//                .build();
+//    }
 }
