@@ -8,6 +8,7 @@
         <module>interceptor</module>
         <module>stringSerializer</module>
         <module>jsonSerializer</module>
+        <module>jsonMappings</module>
     </modules>
     <parent>
 		<groupId>org.springframework.boot</groupId>
