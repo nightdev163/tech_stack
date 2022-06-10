@@ -9,7 +9,8 @@
         <module>stringSerializer</module>
         <module>jsonSerializer</module>
         <module>jsonMappings</module>
-    </modules>
+		<module>recordLogging</module>
+	</modules>
     <parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>

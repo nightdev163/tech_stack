@@ -1,0 +1,3 @@
+logging:
+  file:
+    name: "/Users/zlh/github/tech_stack/big_data/kafka/springKafka/recordLogging/kafka.log"
