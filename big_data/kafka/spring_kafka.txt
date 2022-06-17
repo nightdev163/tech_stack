@@ -87,6 +87,29 @@ Q: revoke 是什么概念?
 
 
 
+DefaultKafkaProducerFactory
+
+Q: DefaultKafkaProducerFactory是什么类
+A: a ProducerFactory is used to create the producer
+
+Q: 内部有哪些工作细节
+A:
+creates a singleton producer 
+	When not using Transactions, by default, the DefaultKafkaProducerFactory creates a singleton producer used by all clients, as recommended in the KafkaProducer javadocs. 
+	However, if you call flush() on the template, this can cause delays for other threads using the same producer. 
+create (and cache) a separate producer for each thread
+	 DefaultKafkaProducerFactory has a new property producerPerThread. When set to true, the factory will create (and cache) a separate producer for each thread, to avoid this issue.	
+垃圾清理
+	when producerPerThread is true, user code must call closeThreadBoundProducer() on the factory when the producer is no longer needed. This will physically close the producer and remove it from the ThreadLocal. Calling reset() or destroy() will not clean up these producers.
+
+Q:如何更新producer参数
+Starting with version 2.5.10, you can now update the producer properties after the factory is created.The changes will not affect existing producer instances; call reset() to close any existing producers so that new producers will be created using the new properties.NOTE: You cannot change a transactional producer factory to non-transactional, and vice-versa.
+
+
+ReplyingKafkaTemplate
+
+
+
 
 Thread Safety
 
@@ -249,6 +272,18 @@ Spring for Apache Kafka also provides JsonSerializer and JsonDeserializer implem
 
 
 
+Q:什么是Spring Messaging？
+	To let you easily convert to and from org.springframework.messaging.Message, Spring for Apache Kafka provides a MessageConverter abstraction with the MessagingMessageConverter implementation and its JsonMessageConverter (and subclasses) customization.
+
+
+
+4.1.18 Message Headers
+As of version 2.0, Spring for Apache Kafka now supports mapping these headers to and from spring-messaging MessageHeaders.
+
+
+Q:inbound outbound是什么概念
+A inbound: 从内存进入到kafka MessageHeaders
+  outbound: 从MessageHeaders到ConsumerRecord
 
 
 
